@@ -1,11 +1,8 @@
-/**
- * Class Rope
- **/
 public class Rope {
     private RopeNode raiz;
 
     public Rope() {
-        raiz = new RopeNode("");
+        raiz = null;
     }
 
     public void limparRope() {
@@ -13,6 +10,10 @@ public class Rope {
     }
 
     public char pesquisa(int indice) {
+
+        if(indice < 1 || indice > calculaPesoTotal(raiz))
+            throw new IndexOutOfBoundsException();
+
         return pesquisa(indice, raiz);
     }
 
@@ -28,41 +29,14 @@ public class Rope {
             if (no.left != null)
                 return pesquisa(i, no.left);
         }
-        return no.data.charAt(i);
+        return no.data.charAt(i-1);
     }
 
+    public void concatenacao(Rope rope){
+        concatenacao(rope.raiz);
+    }
     public void concatenacao(RopeNode novoNo) {
-        RopeNode novaRaiz = new RopeNode();
-        novaRaiz.left = raiz;
-        novaRaiz.right = novoNo;
-        novaRaiz.weight = 0;
-
-        RopeNode calculoPeso = novaRaiz.left;
-
-        while (calculoPeso != null) {
-            novaRaiz.weight += calculoPeso.weight;
-            calculoPeso = calculoPeso.right;
-        }
-
-        raiz = novaRaiz;
-    }
-
-    public RopeNode balancear(RopeNode left, RopeNode right) {
-
-        if (left.data == null && left.right == null) {
-            left.right = right;
-            return left;
-        }
-        if (right.data == null && right.left == null) {
-            right.left = left;
-            return right;
-        }
-
-        RopeNode novo = new RopeNode();
-        novo.left = left;
-        novo.right = right;
-
-        return novo;
+        raiz = balancear(raiz, novoNo);
     }
 
     //TODO: divisao não funciona
@@ -131,5 +105,61 @@ public class Rope {
 
     //TODO: imprimir de inicio até fim
     public void report(int inicio, int fim){
+    }
+
+
+    public void imprimirArvore(){
+        imprimirArvore(raiz, 0);
+    }
+
+    private void imprimirArvore(RopeNode no, int nivel){
+
+        if(no == null)
+            return;
+
+        System.out.println("\t".repeat(nivel) + "Nivel: " + nivel);
+        System.out.println("\t".repeat(nivel) + "Dados: '" + no.data + "' Peso: "+ no.weight);
+
+        if(no.left != null) {
+            System.out.println("\t".repeat(nivel) + "Descentes esquerdos");
+            imprimirArvore(no.left, nivel + 1);
+        }
+
+        if(no.right != null) {
+            System.out.println("\t".repeat(nivel) + "Descentes direitos");
+            imprimirArvore(no.right, nivel + 1);
+        }
+    }
+
+    private int calculaPesoTotal(RopeNode node){
+        int soma = node.weight;
+        RopeNode temp = node.right;
+        while (temp != null){
+            soma += temp.weight;
+            temp = temp.right;
+        }
+        return soma;
+    }
+
+    public RopeNode balancear(RopeNode left, RopeNode right) {
+
+        if (left != null && left.data == null && left.right == null) {
+            left.right = right;
+            return left;
+        }
+
+        RopeNode novo = new RopeNode();
+
+        if(left == null) {
+            novo.left = right;
+            novo.right = null;
+        }else{
+            novo.left = left;
+            novo.right = right;
+        }
+
+        novo.weight = calculaPesoTotal(novo.left);
+
+        return novo;
     }
 }

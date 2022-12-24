@@ -1,14 +1,8 @@
-/**
- * Class RopeNode
- **/
 public class RopeNode {
     RopeNode left, right;
     String data;
     int weight;
 
-    /**
-     * Constructor
-     **/
     public RopeNode(String data) {
         this.data = data;
         left = null;
@@ -16,9 +10,6 @@ public class RopeNode {
         weight = data.length();
     }
 
-    /**
-     * Constructor
-     **/
     public RopeNode() {
         data = null;
         left = null;
