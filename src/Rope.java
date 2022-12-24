@@ -1,12 +1,12 @@
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+
 public class Rope {
     private RopeNode raiz;
 
     public Rope() {
         raiz = null;
-    }
-
-    public void limparRope() {
-        raiz = new RopeNode("");
     }
 
     public char pesquisa(int indice) {
@@ -36,12 +36,35 @@ public class Rope {
         concatenacao(rope.raiz);
     }
     public void concatenacao(RopeNode novoNo) {
-        raiz = balancear(raiz, novoNo);
+        raiz = concatenacao(raiz, novoNo);
+    }
+
+    private RopeNode concatenacao(RopeNode left, RopeNode right){
+        if (left != null && left.data == null && left.right == null) {
+            left.right = right;
+            return left;
+        }
+
+        RopeNode novo = new RopeNode();
+
+        if(left == null) {
+            novo.left = right;
+            novo.right = null;
+        }else{
+            novo.left = left;
+            novo.right = right;
+        }
+
+        novo.weight = calculaPesoTotal(novo.left);
+
+        return novo;
     }
 
     //TODO: divisao não funciona
-    public RopeNode divisao(int indice) {
-        RopeNode novaArvore = null;
+    public Rope divisao(int indice) {
+        Rope novaArvore = new Rope();
+
+        Deque<RopeNode> arvoresParaConcatenar = new ArrayDeque<>();
 
         RopeNode temp = raiz;
 
@@ -50,21 +73,45 @@ public class Rope {
             if (temp.weight < indice && temp.right != null) {
                 indice -= temp.weight;
                 temp = temp.right;
+                continue;
             }
 
-            if (temp.weight > indice && temp.left != null) {
+            if (temp.weight >= indice && temp.left != null) {
+                if (temp.right != null) {
+                    arvoresParaConcatenar.addFirst(temp.right);
+                    temp.right = null;
+                }
 
-                if (novaArvore == null)
-                    novaArvore = temp.right;
+                if (temp.left.weight > indice && temp.left.left == null && temp.left.data != null) {
+                    RopeNode novaSubArvore = new RopeNode();
+                    novaSubArvore.left = new RopeNode(temp.left.data.substring(0, indice));
+                    novaSubArvore.right = new RopeNode(temp.left.data.substring(indice));
+                    temp.left = novaSubArvore;
+                    recalcularPesos();
+                } else
+                    temp = temp.left;
 
-                novaArvore = balancear(novaArvore, temp.right);
-
-                temp = temp.left;
+                continue;
             }
 
+            if(temp.weight == indice) {
+                if (temp.right != null) {
+                    arvoresParaConcatenar.addFirst(temp.right);
+                    temp.right = null;
+                }
+            }
+            break;
         }
+
+        arvoresParaConcatenar.forEach((arvore) -> novaArvore.concatenacao(arvore));
+
+        recalcularPesos();
+        novaArvore.recalcularPesos();
+
+        return novaArvore;
     }
 
+    //TODO
     public void insere(int indice, RopeNode novo) {
         raiz = insere(indice, novo, raiz);
     }
@@ -77,7 +124,7 @@ public class Rope {
 
         if (i == 1) {
             if (no.right != null)
-                novo = balancear(novo, no.right);
+                //novo = balancear(novo, no.right);
 
             no.right = novo;
             return no;
@@ -97,10 +144,11 @@ public class Rope {
         return no;
     }
 
+    //TODO
     public void exclusao(int inicio, int tamanho){
-        RopeNode direita = divisao(inicio + tamanho);
+        Rope direita = divisao(inicio + tamanho);
         divisao(inicio);
-        raiz = balancear(raiz, direita);
+        //raiz = balancear(raiz, direita.raiz);
     }
 
     //TODO: imprimir de inicio até fim
@@ -141,25 +189,22 @@ public class Rope {
         return soma;
     }
 
-    public RopeNode balancear(RopeNode left, RopeNode right) {
+    public void recalcularPesos() {
+        recalcularPesos(raiz);
+    }
+    private int recalcularPesos(RopeNode no) {
 
-        if (left != null && left.data == null && left.right == null) {
-            left.right = right;
-            return left;
+        if(no == null)
+            return 0;
+
+        if(no.data != null) {
+            no.weight = no.data.length();
+            return no.weight;
         }
 
-        RopeNode novo = new RopeNode();
+        no.weight = recalcularPesos(no.left);
 
-        if(left == null) {
-            novo.left = right;
-            novo.right = null;
-        }else{
-            novo.left = left;
-            novo.right = right;
-        }
 
-        novo.weight = calculaPesoTotal(novo.left);
-
-        return novo;
+        return no.weight + recalcularPesos(no.right);
     }
 }
