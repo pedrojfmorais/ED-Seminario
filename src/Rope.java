@@ -11,7 +11,7 @@ public class Rope {
 
     public char pesquisa(int indice) {
 
-        if(indice < 1 || indice > calculaPesoTotal(raiz))
+        if (indice < 1 || indice > calculaPesoTotal(raiz))
             throw new IndexOutOfBoundsException();
 
         return pesquisa(indice, raiz);
@@ -29,17 +29,18 @@ public class Rope {
             if (no.left != null)
                 return pesquisa(i, no.left);
         }
-        return no.data.charAt(i-1);
+        return no.data.charAt(i - 1);
     }
 
-    public void concatenacao(Rope rope){
+    public void concatenacao(Rope rope) {
         concatenacao(rope.raiz);
     }
+
     public void concatenacao(RopeNode novoNo) {
         raiz = concatenacao(raiz, novoNo);
     }
 
-    private RopeNode concatenacao(RopeNode left, RopeNode right){
+    private RopeNode concatenacao(RopeNode left, RopeNode right) {
         if (left != null && left.data == null && left.right == null) {
             left.right = right;
             return left;
@@ -47,10 +48,10 @@ public class Rope {
 
         RopeNode novo = new RopeNode();
 
-        if(left == null) {
+        if (left == null) {
             novo.left = right;
             novo.right = null;
-        }else{
+        } else {
             novo.left = left;
             novo.right = right;
         }
@@ -60,7 +61,6 @@ public class Rope {
         return novo;
     }
 
-    //TODO: divisao não funciona
     public Rope divisao(int indice) {
         Rope novaArvore = new Rope();
 
@@ -94,7 +94,7 @@ public class Rope {
                 continue;
             }
 
-            if(temp.weight == indice) {
+            if (temp.weight == indice) {
                 if (temp.right != null) {
                     arvoresParaConcatenar.addFirst(temp.right);
                     temp.right = null;
@@ -103,7 +103,10 @@ public class Rope {
             break;
         }
 
-        arvoresParaConcatenar.forEach((arvore) -> novaArvore.concatenacao(arvore));
+        if(arvoresParaConcatenar.size() > 1)
+            arvoresParaConcatenar.forEach((arvore) -> novaArvore.concatenacao(arvore));
+        else
+            novaArvore.raiz = arvoresParaConcatenar.getFirst();
 
         recalcularPesos();
         novaArvore.recalcularPesos();
@@ -126,7 +129,7 @@ public class Rope {
             if (no.right != null)
                 //novo = balancear(novo, no.right);
 
-            no.right = novo;
+                no.right = novo;
             return no;
         }
 
@@ -145,44 +148,44 @@ public class Rope {
     }
 
     //TODO
-    public void exclusao(int inicio, int tamanho){
+    public void exclusao(int inicio, int tamanho) {
         Rope direita = divisao(inicio + tamanho);
         divisao(inicio);
-        //raiz = balancear(raiz, direita.raiz);
+        raiz = concatenacao(raiz, direita.raiz);
     }
 
     //TODO: imprimir de inicio até fim
-    public void report(int inicio, int fim){
+    public void report(int inicio, int fim) {
     }
 
 
-    public void imprimirArvore(){
+    public void imprimirArvore() {
         imprimirArvore(raiz, 0);
     }
 
-    private void imprimirArvore(RopeNode no, int nivel){
+    private void imprimirArvore(RopeNode no, int nivel) {
 
-        if(no == null)
+        if (no == null)
             return;
 
         System.out.println("\t".repeat(nivel) + "Nivel: " + nivel);
-        System.out.println("\t".repeat(nivel) + "Dados: '" + no.data + "' Peso: "+ no.weight);
+        System.out.println("\t".repeat(nivel) + "Dados: '" + no.data + "' Peso: " + no.weight);
 
-        if(no.left != null) {
+        if (no.left != null) {
             System.out.println("\t".repeat(nivel) + "Descentes esquerdos");
             imprimirArvore(no.left, nivel + 1);
         }
 
-        if(no.right != null) {
+        if (no.right != null) {
             System.out.println("\t".repeat(nivel) + "Descentes direitos");
             imprimirArvore(no.right, nivel + 1);
         }
     }
 
-    private int calculaPesoTotal(RopeNode node){
+    private int calculaPesoTotal(RopeNode node) {
         int soma = node.weight;
         RopeNode temp = node.right;
-        while (temp != null){
+        while (temp != null) {
             soma += temp.weight;
             temp = temp.right;
         }
@@ -192,12 +195,13 @@ public class Rope {
     public void recalcularPesos() {
         recalcularPesos(raiz);
     }
+
     private int recalcularPesos(RopeNode no) {
 
-        if(no == null)
+        if (no == null)
             return 0;
 
-        if(no.data != null) {
+        if (no.data != null) {
             no.weight = no.data.length();
             return no.weight;
         }
