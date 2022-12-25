@@ -1,12 +1,12 @@
 public class Main {
     public static void main(String[] args) {
 
-//        exemploPesquisa();
+        exemploPesquisa();
 //        exemploConcatenacao();
 //        exemploDivisaoUltimoCaracter();
 //        exemploDivisaoCaracterMeio();
 //        exemploInserir();
-        exemploExclusao();
+//        exemploExclusao();
 //        exemploReport();
 //        exemploRebalance();
     }
@@ -112,20 +112,26 @@ public class Main {
     public static void exemploReport() {
 
         Rope arvore = constroiArvoreHello_my_name_is_Simon();
+
+        System.out.println("Árvore original:");
         arvore.imprimirArvore();
 
-        String str = arvore.report(8, 14);
-//        String str = arvore.report(1, 22);
+        String str = arvore.report(8, 6);
+//        String str = arvore.report(1, 21);
+
         System.out.println(System.lineSeparator() + "String final: " + str);
     }
 
     public static void exemploRebalance() {
 
         Rope arvore = constroiArvoreUnbalanced();
+
+        System.out.println("Árvore original:");
         arvore.imprimirArvore();
 
         arvore.rebalance();
 
+        System.out.println("Árvore após ser reequilibrada:");
         arvore.imprimirArvore();
     }
 

@@ -179,15 +179,12 @@ public class Rope {
         raiz = concatenacao(raiz, direita.raiz);
     }
 
-    public String report(int inicio, int fim) {
+    public String report(int inicio, int tamanho) {
 
-        if (inicio > fim)
-            throw new IllegalArgumentException();
-
-        if (inicio < 1 || fim > calculaPesoTotal(raiz))
+        if (inicio < 1 || inicio + tamanho > calculaPesoTotal(raiz))
             throw new IndexOutOfBoundsException();
 
-        return report(inicio, fim+1, raiz);
+        return report(inicio, inicio + tamanho + 1, raiz);
     }
 
     private String report(int inicio, int fim, RopeNode raiz) {
@@ -224,7 +221,7 @@ public class Rope {
         return sb.toString();
     }
 
-    public void rebalance(){
+    public void rebalance() {
         ArrayList<RopeNode> folhas;
         ArrayList<RopeNode> res = new ArrayList<>();
         rebalance(res, raiz);
@@ -246,15 +243,15 @@ public class Rope {
         raiz = res.get(0);
     }
 
-    private void rebalance(ArrayList<RopeNode> folhas, RopeNode no){
+    private void rebalance(ArrayList<RopeNode> folhas, RopeNode no) {
 
-        if(no.left != null)
+        if (no.left != null)
             rebalance(folhas, no.left);
 
-        if(no.right != null)
+        if (no.right != null)
             rebalance(folhas, no.right);
 
-        if(no.data != null && !no.data.isBlank())
+        if (no.data != null && !no.data.isBlank())
             folhas.add(no);
 
     }
