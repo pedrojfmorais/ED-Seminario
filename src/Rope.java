@@ -25,10 +25,11 @@ public class Rope {
                 return pesquisa(i, no.right);
         }
 
-        if (no.weight > i) {
+        if (no.weight > i || (no.weight == i && i > 1)) {
             if (no.left != null)
                 return pesquisa(i, no.left);
         }
+
         return no.data.charAt(i - 1);
     }
 
@@ -41,6 +42,7 @@ public class Rope {
     }
 
     private RopeNode concatenacao(RopeNode left, RopeNode right) {
+
         if (left != null && left.data == null && left.right == null) {
             left.right = right;
             return left;
@@ -62,6 +64,14 @@ public class Rope {
     }
 
     public Rope divisao(int indice) {
+
+        if (indice < 1 || indice > calculaPesoTotal(raiz))
+            throw new IndexOutOfBoundsException();
+
+        return divisao(indice, raiz);
+    }
+
+    private Rope divisao(int indice, RopeNode raiz) {
         Rope novaArvore = new Rope();
 
         Deque<RopeNode> arvoresParaConcatenar = new ArrayDeque<>();
@@ -70,17 +80,24 @@ public class Rope {
 
         while (true) {
 
-            if (temp.weight < indice && temp.right != null) {
-                indice -= temp.weight;
-                temp = temp.right;
-                continue;
+            if (temp.right != null) {
+
+                if (temp.weight < indice && temp.right.right == null && temp.right.data != null && indice - temp.weight != calculaPesoTotal(temp.right)) {
+                    RopeNode novaSubArvore = new RopeNode();
+                    novaSubArvore.left = new RopeNode(temp.right.data.substring(0, indice - 1));
+                    novaSubArvore.right = new RopeNode(temp.right.data.substring(indice - 1));
+                    temp.right = novaSubArvore;
+                    recalcularPesos();
+                }
+
+                if (temp.weight < indice) {
+                    indice -= temp.weight;
+                    temp = temp.right;
+                    continue;
+                }
             }
 
-            if (temp.weight >= indice && temp.left != null) {
-                if (temp.right != null) {
-                    arvoresParaConcatenar.addFirst(temp.right);
-                    temp.right = null;
-                }
+            if (temp.left != null) {
 
                 if (temp.left.weight > indice && temp.left.left == null && temp.left.data != null) {
                     RopeNode novaSubArvore = new RopeNode();
@@ -88,9 +105,15 @@ public class Rope {
                     novaSubArvore.right = new RopeNode(temp.left.data.substring(indice));
                     temp.left = novaSubArvore;
                     recalcularPesos();
-                } else
-                    temp = temp.left;
+                }
 
+                if (temp.weight >= indice) {
+                    if (temp.right != null) {
+                        arvoresParaConcatenar.addFirst(temp.right);
+                        temp.right = null;
+                    }
+                    temp = temp.left;
+                }
                 continue;
             }
 
@@ -103,7 +126,7 @@ public class Rope {
             break;
         }
 
-        if(arvoresParaConcatenar.size() > 1)
+        if (arvoresParaConcatenar.size() > 1)
             arvoresParaConcatenar.forEach((arvore) -> novaArvore.concatenacao(arvore));
         else
             novaArvore.raiz = arvoresParaConcatenar.getFirst();
@@ -114,50 +137,127 @@ public class Rope {
         return novaArvore;
     }
 
-    //TODO
-    public void insere(int indice, RopeNode novo) {
-        raiz = insere(indice, novo, raiz);
+    public void insere(int indice, String nova) {
+
+        if (indice < 1 || indice > calculaPesoTotal(raiz))
+            throw new IndexOutOfBoundsException();
+
+        insere(indice, new RopeNode(nova));
     }
 
-    //TODO: falta caso insira a meio de um nó existente, veriicação indice nos limites
-    private RopeNode insere(int i, RopeNode novo, RopeNode no) {
+    private void insere(int i, RopeNode nova) {
 
-        if (no == null)
-            return null;
+        Rope right = divisao(i);
+        right.raiz = concatenacao(nova, right.raiz);
 
-        if (i == 1) {
-            if (no.right != null)
-                //novo = balancear(novo, no.right);
+        RopeNode temp = raiz;
+        RopeNode pontoInsercao = null;
 
-                no.right = novo;
-            return no;
+        while (temp != null) {
+            if (temp.right == null && temp.data == null) {
+                pontoInsercao = temp;
+                temp = temp.left;
+            } else
+                temp = temp.right;
         }
 
-        if (no.weight < i) {
-            i -= no.weight;
+        if (pontoInsercao == null)
+            concatenacao(right);
+        else
+            pontoInsercao.right = right.raiz;
 
-            if (no.right != null)
-                no.right = insere(i, novo, no.right);
-        }
-
-        if (no.weight > i) {
-            if (no.left != null)
-                no.left = insere(i, novo, no.left);
-        }
-        return no;
+        recalcularPesos();
     }
 
-    //TODO
     public void exclusao(int inicio, int tamanho) {
+
+        if (inicio < 1 || inicio + tamanho > calculaPesoTotal(raiz))
+            throw new IndexOutOfBoundsException();
+
         Rope direita = divisao(inicio + tamanho);
         divisao(inicio);
         raiz = concatenacao(raiz, direita.raiz);
     }
 
-    //TODO: imprimir de inicio até fim
-    public void report(int inicio, int fim) {
+    public String report(int inicio, int fim) {
+
+        if (inicio > fim)
+            throw new IllegalArgumentException();
+
+        if (inicio < 1 || fim > calculaPesoTotal(raiz))
+            throw new IndexOutOfBoundsException();
+
+        return report(inicio, fim+1, raiz);
     }
 
+    private String report(int inicio, int fim, RopeNode raiz) {
+
+        StringBuilder sb = new StringBuilder();
+        RopeNode noAtual = raiz;
+        int temp = inicio;
+
+        while (inicio < fim) {
+            if (noAtual.weight < temp && noAtual.data == null) {
+                temp -= noAtual.weight;
+
+                if (noAtual.right != null)
+                    noAtual = noAtual.right;
+                continue;
+            }
+
+            if (noAtual.weight >= temp && noAtual.data == null) {
+                if (noAtual.left != null)
+                    noAtual = noAtual.left;
+                continue;
+            }
+
+            if (noAtual.data.length() + inicio > fim) {
+                sb.append(noAtual.data, temp - 1, fim - inicio);
+                break;
+            } else
+                sb.append(noAtual.data, temp - 1, noAtual.data.length());
+
+            inicio += noAtual.data.length() - temp + 1;
+            noAtual = raiz;
+            temp = inicio;
+        }
+        return sb.toString();
+    }
+
+    public void rebalance(){
+        ArrayList<RopeNode> folhas;
+        ArrayList<RopeNode> res = new ArrayList<>();
+        rebalance(res, raiz);
+
+        do {
+
+            folhas = new ArrayList<>(res);
+            res.clear();
+
+            if (folhas.size() % 2 == 1)
+                folhas.add(null);
+
+            while (folhas.size() > 1) {
+                res.add(concatenacao(folhas.remove(0), folhas.remove(0)));
+            }
+
+        } while (res.size() > 1);
+
+        raiz = res.get(0);
+    }
+
+    private void rebalance(ArrayList<RopeNode> folhas, RopeNode no){
+
+        if(no.left != null)
+            rebalance(folhas, no.left);
+
+        if(no.right != null)
+            rebalance(folhas, no.right);
+
+        if(no.data != null && !no.data.isBlank())
+            folhas.add(no);
+
+    }
 
     public void imprimirArvore() {
         imprimirArvore(raiz, 0);
