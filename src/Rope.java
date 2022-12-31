@@ -251,7 +251,7 @@ public class Rope {
         if (no.right != null)
             rebalance(folhas, no.right);
 
-        if (no.data != null && !no.data.isBlank())
+        if (no.data != null && !no.data.isEmpty())
             folhas.add(no);
 
     }
